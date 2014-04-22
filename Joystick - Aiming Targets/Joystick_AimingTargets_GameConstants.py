@@ -38,7 +38,7 @@ four = (SCREEN_CENTER[0] + GAME_SIZE[0]/2, SCREEN_CENTER[1] - GAME_SIZE[1]/2)
 GAME_RECT = (one,two,three,four)
 
 #If you want full screen , then set FULL_SCREEN = TRUE (make sure to get the above RES correct)
-
+FONT_SIZE = 28
 BACKGROUND_COLOR = (0,0,0)          #Background screen color
 #The current screen size is 1024 x 768 pixels
 #The tablet size is 9 x 12 inches, which is 304.8 x 228.6 mm
@@ -49,6 +49,11 @@ MM2PIXEL = 3.35958
 SAMPLING_RATE = 60 #was 100
 JOYSTICKXGAIN = SCREEN_SIZE[0]/SAMPLING_RATE
 JOYSTICKYGAIN = SCREEN_SIZE[1]/SAMPLING_RATE
+
+#Points properties
+POINTS_FONT_SIZE = 44
+POINTS_COLOR = (255,255,255)
+POINTS_POSITION = SCREEN_CENTER
 
 #Cursor Properties
 CURSOR_COLOR = (255,255,255)        

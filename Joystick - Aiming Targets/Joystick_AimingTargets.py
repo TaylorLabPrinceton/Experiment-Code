@@ -159,7 +159,7 @@ class Game:
 
         #Abstracted file
         history = {'trial_num':[],'target_distance':[],'target_angle':[],'rotation':[], 'aiming_targets':[],'target_ring':[],
-                   'online_feedback':[],'endpoint_feedback':[],'binary_feedback':[],'goal':[],'instruction':[],'numericfb':[],'currentpoints':[],'totalpoints':[],'pause':[], 'show_score':[],'cursor_angle':[],'cursor_r':[],'hand_angle':[],'hand_r':[],
+                   'online_feedback':[],'endpoint_feedback':[],'binary_feedback':[],'goal':[],'instruction':[],'numericfb':[],'currentpoints':[],'totalpoints':[],'currentscore':[],'totalscore':[],'pause':[], 'show_score':[],'cursor_angle':[],'cursor_r':[],'hand_angle':[],'hand_r':[],
                    'abs_start_x':[],'abs_start_y':[],'abs_target_x':[],'abs_target_y':[],'abs_cursor_x':[],'abs_cursor_y':[],
                    'abs_hand_x':[],'abs_hand_y':[],'start_x':[],'start_y':[],'target_x':[],'target_y':[],
                    'cursor_x':[],'cursor_y':[],'hand_x':[],'hand_y':[],'hit':[],
@@ -182,14 +182,21 @@ class Game:
 	joystick_axis3 = 0 #only using first two axes
         self.trial_num = 0
         self.flag = 1
+        self.total_score = 0
+        self.current_score  = 0
         self.total_points = 0
         self.current_points  = 0
         self.possible_points = 0
         self.total_trials = 0
         self.score_color = SCORE_COLOR
         self.score_position = (SCREEN_CENTER[0]-SCREEN_CENTER[0]/1.5,SCREEN_CENTER[1])
+        self.points_font_size = POINTS_FONT_SIZE
+        self.points_position = POINTS_POSITION
+        self.points_color = POINTS_COLOR
         self.cue_position = (SCREEN_CENTER[0]-110,SCREEN_CENTER[1]-150)
         self.exit = False
+        self.font_size = FONT_SIZE
+        errorangle = 0
         
         #Timing
         clock = pygame.time.Clock()
@@ -515,7 +522,7 @@ class Game:
             
         def GameHistoryUpdate(history,cursor,target,start,move_data,PIXEL2MM):
             history_keys = ['trial_num','target_distance','target_angle','rotation', 'aiming_targets','target_ring',
-                            'online_feedback','endpoint_feedback','binary_feedback','goal','instruction','numericfb','currentpoints','totalpoints','pause','show_score','cursor_angle','cursor_r','hand_angle','hand_r',
+                            'online_feedback','endpoint_feedback','binary_feedback','goal','instruction','numericfb','currentpoints','totalpoints','currentscore','totalscore','pause','show_score','cursor_angle','cursor_r','hand_angle','hand_r',
                             'abs_start_x','abs_start_y','abs_target_x','abs_target_y','abs_cursor_x','abs_cursor_y',
                             'abs_hand_x','abs_hand_y','start_x','start_y','target_x','target_y',
                             'cursor_x','cursor_y','hand_x','hand_y','hit',
@@ -537,6 +544,8 @@ class Game:
             history['numericfb'].append(self.numericfb)
             history['currentpoints'].append(self.current_points)
             history['totalpoints'].append(self.total_points)
+            history['currentscore'].append(self.current_score)
+            history['totalscore'].append(self.total_score)
             history['pause'].append(self.pause)
             history['show_score'].append(self.show_score)
 
@@ -756,7 +765,7 @@ class Game:
                     self.draw_rectlist.append(pygame.draw.circle(self.screen, target.ring_color, start.position, target.distance, 1))
                     
                 #Draw target last
-                self.draw_rectlist.append(pygame.draw.circle(self.screen, target.color, target.position, target.width, TARGET_FILL))
+                self.draw_rectlist.append(pygame.draw.circle(self.screen, target.color, target.position, target.width, 0))
 
                 #If they moved outside the start circle
                 if cursor.r > start.width:
@@ -779,7 +788,7 @@ class Game:
                     self.draw_rectlist.append(pygame.draw.circle(self.screen, target.ring_color, start.position, target.distance, 1))
                     
                 #Plot target
-                self.draw_rectlist.append(pygame.draw.circle(self.screen, target.color, target.position, target.width, TARGET_FILL))
+                self.draw_rectlist.append(pygame.draw.circle(self.screen, target.color, target.position, target.width, 0))
                 #Did they hit the target? #THIS IF FOR FEEDBACK
                 if cursor.r >= target.distance:
                     if cursor.angle*180/math.pi < -22.5:
@@ -796,6 +805,9 @@ class Game:
                             self.current_points = 100
                             self.total_points += self.current_points
                             self.possible_points += 100
+                        else:
+                            self.current_score = 1
+                            self.total_score += self.current_score
                         if self.binary_feedback > 0:
                             TARGET_FILL = 0
                             s = pygame.mixer.Sound('correct.wav')
@@ -873,15 +885,15 @@ class Game:
                 elif self.endpoint_feedback == 0:
                     CURSOR_ENDPOINT_FB = False
                     self.draw_rectlist.append(pygame.draw.circle(self.screen, target.color, target.position, target.width, TARGET_FILL))
-                #if self.numericfb == 1:
-                    ##Calulate feedback location
-                    #numericfbx = (target.distance*.5)*math.cos(target.angle*math.pi/180) + start.x
-                    #numericfby = -(target.distance*.5)*math.sin(target.angle*math.pi/180) + start.y
-                    #self.points_position = (int(numericfbx),int(numericfby))
-                    ##draw points
-                    #font = pygame.font.Font(None, self.points_font_size)
-                    #text = font.render(str(int(self.current_points)), 1, self.points_color)
-                    #self.draw_rectlist.append(self.screen.blit(text, self.points_position))       
+                if self.numericfb == 1:
+                    #Calulate feedback location
+                    numericfbx = (target.distance*.6)*math.cos(target.angle*math.pi/180) + start.x
+                    numericfby = -(target.distance*.6)*math.sin(target.angle*math.pi/180) + start.y
+                    self.points_position = (int(numericfbx),int(numericfby))
+                    #draw points
+                    font = pygame.font.Font(None, self.points_font_size)
+                    text = font.render(str(int(self.current_points)), 1, self.points_color)
+                    self.draw_rectlist.append(self.screen.blit(text, self.points_position))   
                 #Feedback time is over so reset everything
                 if self.fb_time > FEEDBACK_TIME:
                     NEXT_TRIAL = True
@@ -894,7 +906,6 @@ class Game:
                         slowchk = 1
                     
             if NEXT_TRIAL: #Clean up for next trial and check instructions
-                target.hit = HIT
 
                 if self.pause == 1 and self.show_score == 0 and self.pause_chk < 1:
                     GoalReminder(self,BLOCKFB_TIME)
@@ -925,6 +936,7 @@ class Game:
                     TARGET_FILL = 1
                     HIT = -1                    
                     GameHistoryUpdate(history,cursor,target,start,move_data,PIXEL2MM)
+                    self.current_score = 0
                     #Reinitialize everything
                     trialnum += 1
                     self.trial_num = trialnum
