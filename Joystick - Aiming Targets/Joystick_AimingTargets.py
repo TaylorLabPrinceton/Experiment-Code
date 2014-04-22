@@ -217,7 +217,8 @@ class Game:
 
 
         #Trial Flags
-        FIND_START = True           #Flag 1
+        GOAL_REMINDER = True
+        FIND_START = False           #Flag 1
         HOLD_START = False          #Flag 2
         SHOW_TARGET = False         #Flag 3
         MOVING = False              #Flag 4
@@ -225,7 +226,7 @@ class Game:
         NEXT_TRIAL = False #Flag 6
         TARGET_FILL = 1
         CURSOR_VISIBLE = False
-        CURSOR_ZOOM = True
+        CURSOR_ZOOM = False
         CURSOR_CONTROL = True
         HIT = False
         CURSOR_ENDPOINT_FB = False
@@ -233,6 +234,8 @@ class Game:
         
         #Game Pertinent Functions----------------------------------------------------------------------
         def CurrentEvent(self):
+            if GOAL_REMINDER:
+                self.flag = 0
             if FIND_START:
                 self.flag = 1
             if HOLD_START:
@@ -308,6 +311,65 @@ class Game:
                     angle = angle + aiming_increment
 
                 ScreenUpdateNoErase(self)
+
+
+##                #THIS IS FOR NUMBERED AIMING LANDMARKS.......
+##                #Compute how many targets
+##                aiming_increment = aiming.center/aiming.target
+##                angle = aiming.start
+##                color_increment = math.floor(len(COLORMAP)/(aiming.target*2))
+##                start_count = 0
+##                end_count = NUM_COLORS
+##                numfix = aiming.target*2
+##                for i in range(int(aiming.target*2)):
+##                    #(angle,math.fabs(angle))
+##                    if math.fabs(angle) <= 179:
+##                        #Get colors
+##                        color_start = COLORMAP[start_count]
+##                        color_end = COLORMAP[end_count]
+##                        #Compute x,y position for aiming target
+##                        x = start.x + target.distance*math.cos((target.angle+angle)*math.pi/180)
+##                        y = start.y - target.distance*math.sin((target.angle+angle)*math.pi/180)
+##                        aiming.position = (int(x),int(y))
+##                        aiming.position_num = (int(x-3),int(y-5))
+##                        #plot current aiming target
+##                        #self.draw_noerase_rectlist.append(pygame.draw.circle(self.screen, color_start, aiming.position, aiming.width*2, 1))
+##                        font = pygame.font.Font(None, 18)
+##                        num2display = -(i-numfix)
+##                        text = font.render(str(int(num2display)), 1, self.score_color)
+##                        self.draw_noerase_rectlist.append(self.screen.blit(text, aiming.position_num ))
+##
+##                       #Compute x,y position for opposite aiming target
+##                        x = start.x + target.distance*math.cos((target.angle-angle)*math.pi/180)
+##                        y = start.y - target.distance*math.sin((target.angle-angle)*math.pi/180)
+##                        aiming.position = (int(x),int(y))
+##                        aiming.position_num = (int(x-6),int(y-5))
+##                        #plot current aiming target - uncomment below to put target circles back on..
+##                        #self.draw_noerase_rectlist.append(pygame.draw.circle(self.screen, color_end, aiming.position, aiming.width*2, 1))
+##                        start_count = int(start_count + color_increment)
+##                        end_count = int(end_count - color_increment)
+##                        font = pygame.font.Font(None, 18)
+##                        num2display = (i-numfix)
+##                        text = font.render(str(int(num2display)), 1, self.score_color)
+##                        self.draw_noerase_rectlist.append(self.screen.blit(text, aiming.position_num ))
+##
+##                    elif math.fabs(angle) > 179:
+##                        #Compute x,y position for aiming target
+##                        x = start.x + target.distance*math.cos((target.angle+angle)*math.pi/180)
+##                        y = start.y - target.distance*math.sin((target.angle+angle)*math.pi/180)
+##                        aiming.position = (int(x),int(y))
+##                        #plot current aiming target
+##                        self.draw_noerase_rectlist.append(pygame.draw.circle(self.screen, (128,128,128), aiming.position, aiming.width, 0))
+##                        #Compute x,y position for opposite aiming target
+##                        x = start.x + target.distance*math.cos((target.angle-angle)*math.pi/180)
+##                        y = start.y - target.distance*math.sin((target.angle-angle)*math.pi/180)
+##                        aiming.position = (int(x),int(y))
+##                        #plot current aiming target
+##                        self.draw_noerase_rectlist.append(pygame.draw.circle(self.screen, (128,128,128), aiming.position, aiming.width, 0))                    
+##                    #compute next target and colors
+##                    angle = angle + aiming_increment
+##
+##                ScreenUpdateNoErase(self)
                     
         def StartDist(cursor,hand,start):
             x = cursor.x - start.x
@@ -379,144 +441,60 @@ class Game:
            				if event.key == K_SPACE:
            					self.pause_chk = 1
 
-         #This will display the score following the end of the block
-        def GoalInstPause(self,blockfb_time):
-           	self.draw_rectlist.append(self.screen.fill(BACKGROUND_COLOR))
-           	font = pygame.font.Font(None, 36)
-           	text = font.render("Reminder: The goal of the task is to get your red cursor on the", 1, self.score_color)
-           	self.draw_rectlist.append(self.screen.blit(text, self.score_position))
-           	text2 = font.render("green target.", 1, self.score_color)
-           	self.draw_rectlist.append(self.screen.blit(text2, (self.score_position[0]+130,self.score_position[1]+25)))
-           	ScreenUpdate(self)
-           	pausescreen(self)
-            
-        def GoalInstReminder(self,blockfb_time):
-            self.draw_rectlist.append(self.screen.fill(BACKGROUND_COLOR))
-            font = pygame.font.Font(None, 36)
-            text = font.render("Reminder: The goal of the task is to get your red cursor on the", 1, self.score_color)
-            self.draw_rectlist.append(self.screen.blit(text, self.score_position))
-            text2 = font.render("green target.", 1, self.score_color)
-            self.draw_rectlist.append(self.screen.blit(text2, (self.score_position[0]+130,self.score_position[1]+25)))
-            text4 = font.render("Total Score is "+str(int(self.total_score))+" out of "
-                               +str(int(self.total_trials))+". You collected "+
-                               str(int(100*self.total_score/self.total_trials))+
-                               "% of points available.", 1, self.score_color)
-            self.draw_rectlist.append(self.screen.blit(text4, (self.score_position[0],self.score_position[1]-100)))
-            ScreenUpdate(self)
-            pygame.time.delay(int((blockfb_time+2)*1000))
-            self.pause_chk = 1
-        
-        def GoalReminderScore(self,blockfb_time):
-            self.draw_rectlist.append(self.screen.fill(BACKGROUND_COLOR))
-            font = pygame.font.Font(None, 36)
-            text = font.render("Reminder: The goal of the task is to get your red cursor on the", 1, self.score_color)
-            self.draw_rectlist.append(self.screen.blit(text, self.score_position))
-            text = font.render("green target.", 1, self.score_color)
-            self.draw_rectlist.append(self.screen.blit(text, (self.score_position[0]+130,self.score_position[1]+25)))
-            text4 = font.render("Total Score is "+str(int(self.total_score))+" out of "
-                               +str(int(self.total_trials))+". You collected "+
-                               str(int(100*self.total_score/self.total_trials))+
-                               "% of points available.", 1, self.score_color)
-            self.draw_rectlist.append(self.screen.blit(text4, (self.score_position[0],self.score_position[1]-100)))
-            ScreenUpdate(self)
-            pygame.time.delay(int(blockfb_time*1000))
-            self.pause_chk = 1
-        
-        def GoalReminderFirstTrial(self):
-            self.draw_rectlist.append(self.screen.fill(BACKGROUND_COLOR))
-            font = pygame.font.Font(None, 36)
-            text = font.render("Reminder: The goal of the task is to get your red cursor on the", 1, self.score_color)
-            self.draw_rectlist.append(self.screen.blit(text, self.score_position))
-            text = font.render("green target.", 1, self.score_color)
-            self.draw_rectlist.append(self.screen.blit(text, (self.score_position[0]+130,self.score_position[1]+25)))
-            ScreenUpdate(self)
-            pausescreen(self)
-            
         def GoalReminder(self,blockfb_time):
-            self.draw_rectlist.append(self.screen.fill(BACKGROUND_COLOR))
-            font = pygame.font.Font(None, 36)
-            text = font.render("Reminder: The goal of the task is to get your red cursor on the", 1, self.score_color)
-            self.draw_rectlist.append(self.screen.blit(text, self.score_position))
-            text = font.render("green target.", 1, self.score_color)
-            self.draw_rectlist.append(self.screen.blit(text, (self.score_position[0]+130,self.score_position[1]+25)))
-            ScreenUpdate(self)
-            pygame.time.delay(int(blockfb_time*1000))
-            self.pause_chk = 1
-            
-        def BreakScreen(self,blockfb_time):
-            self.draw_rectlist.append(self.screen.fill(BACKGROUND_COLOR))
-            font = pygame.font.Font(None, 36)
-            text = font.render("Please take a short 30 second break", 1, self.score_color)
-            self.draw_rectlist.append(self.screen.blit(text, self.score_position))
-            ScreenUpdate(self)
-            pygame.time.delay(int(30000))#30 second break
-            PostBreakScreen(self,blockfb_time)
-            
-        def PostBreakScreen(self,blockfb_time):       
-            self.draw_rectlist.append(self.screen.fill(BACKGROUND_COLOR))
-            font = pygame.font.Font(None, 36)
-            text = font.render("Get ready! The experiment will now continue.", 1, self.score_color)
-            self.draw_rectlist.append(self.screen.blit(text, (self.score_position[0],self.score_position[1]-100)))
-            text2 = font.render("Reminder: The goal of the task is to get your red cursor on the", 1, self.score_color)
-            self.draw_rectlist.append(self.screen.blit(text2, self.score_position))
-            text3 = font.render("green target.", 1, self.score_color)
-            self.draw_rectlist.append(self.screen.blit(text3, (self.score_position[0]+130,self.score_position[1]+25)))
-            ScreenUpdate(self)
-            pausescreen(self)
-        
+            #There are 3 goal instructions (get cursor in target, fill-in green, and aim to target)
+            #if goal = 1 - get cursor in target
+            #if goal = 2 - fill in green
+            #if goal = 3 - aim directly to target
 
-        def WashReminderPause(self,blockfb_time):
-            self.draw_rectlist.append(self.screen.fill(BACKGROUND_COLOR))
-            font = pygame.font.Font(None, 36)
-            text = font.render("Aim directly for the green target", 1, self.score_color)
-            self.draw_rectlist.append(self.screen.blit(text, (self.score_position[0]+160,self.score_position[1])))
-            text2 = font.render("You will not see feedback of your reaches for some of the movements", 1, self.score_color)
-            self.draw_rectlist.append(self.screen.blit(text2, (self.score_position[0],self.score_position[1]+50)))
-            ScreenUpdate(self)
-            pausescreen(self)
-            
-        def WashReminder(self,blockfb_time):
-            self.draw_rectlist.append(self.screen.fill(BACKGROUND_COLOR))
-            font = pygame.font.Font(None, 36)
-            text = font.render("Aim directly for the green target", 1, self.score_color)
-            self.draw_rectlist.append(self.screen.blit(text, (self.score_position[0]+160,self.score_position[1])))
-            text2 = font.render("You will not see feedback of your reaches for some of the movements", 1, self.score_color)
-            self.draw_rectlist.append(self.screen.blit(text2, (self.score_position[0]-50,self.score_position[1]+50)))
-            ScreenUpdate(self)
+            #There are 3 other instructions (none, nonspecific, and specific)
+            #if instruction = 1 - none
+            #if instruction = 2 - nonspecific
+            #if instruction = 3 - specific
+            if self.paint_once == 0:
+                self.draw_rectlist.append(self.screen.fill(BACKGROUND_COLOR))
+                ScreenUpdate(self)
+                font = pygame.font.Font(None, self.font_size)
+                if self.goal == 1:
+                    text = font.render("Reminder: The goal of the task is to get your cursor on the green target", 1, self.score_color)
+                    self.draw_noerase_rectlist.append(self.screen.blit(text, self.score_position))
+                    if self.instruction == 1:
+                        text = font.render("", 1, self.score_color)
+                        self.draw_noerase_rectlist.append(self.screen.blit(text, (self.score_position[0],self.score_position[1]+100)))
+                    elif self.instruction == 2:
+                        text = font.render("You may find that aiming to the green target is not effective in getting your cursor on the target.", 1, self.score_color)
+                        self.draw_noerase_rectlist.append(self.screen.blit(text, (self.score_position[0]-50,self.score_position[1]+50)))
+                        text = font.render("If so, then try reaching to other colored targets to get your cursor on the target.", 1, self.score_color)
+                        self.draw_noerase_rectlist.append(self.screen.blit(text, (self.score_position[0],self.score_position[1]+100)))
+                    elif self.instruction == 3:
+                        text = font.render("We have added a 45 degree clockwise rotation to your cursor", 1, self.score_color)
+                        self.draw_noerase_rectlist.append(self.screen.blit(text, (self.score_position[0],self.score_position[1]+50)))
+                        text = font.render("Try reaching to the orange target in the 45 degree CCW location to fill-in the green target", 1, self.score_color)
+                        self.draw_noerase_rectlist.append(self.screen.blit(text, (self.score_position[0]-50,self.score_position[1]+100)))
+                elif self.goal == 2:
+                    text = font.render("Reminder: The goal of the task is to fill-in the green target", 1, self.score_color)
+                    self.draw_noerase_rectlist.append(self.screen.blit(text, self.score_position))
+                    if self.instruction == 1:
+                        text = font.render("", 1, self.score_color)
+                        self.draw_noerase_rectlist.append(self.screen.blit(text, (self.score_position[0],self.score_position[1]+100)))
+                    elif self.instruction == 2:
+                        text = font.render("You may find that aiming to the green target is not effective in filling-in the target.", 1, self.score_color)
+                        self.draw_noerase_rectlist.append(self.screen.blit(text, (self.score_position[0]-50,self.score_position[1]+50)))
+                        text = font.render("If so, then try reaching to other colored targets to fill-in the green target.", 1, self.score_color)
+                        self.draw_noerase_rectlist.append(self.screen.blit(text, (self.score_position[0],self.score_position[1]+100)))
+                    elif self.instruction == 3:
+                        text = font.render("We have added a 45 degree clockwise rotation to your cursor", 1, self.score_color)
+                        self.draw_noerase_rectlist.append(self.screen.blit(text, (self.score_position[0],self.score_position[1]+50)))
+                        text = font.render("Try reaching to the orange target (45 degree CCW dirction) to fill-in the green target", 1, self.score_color)
+                        self.draw_noerase_rectlist.append(self.screen.blit(text, (self.score_position[0]-65,self.score_position[1]+100)))
+                elif self.goal == 3:
+                    text = font.render("Aim directly for the green target", 1, self.score_color)
+                    self.draw_noerase_rectlist.append(self.screen.blit(text, (self.score_position[0]+160,self.score_position[1])))
+                    text = font.render("You will not see feedback of your reachs for some of the movements", 1, self.score_color)
+                    self.draw_noerase_rectlist.append(self.screen.blit(text, (self.score_position[0],self.score_position[1]+50)))                  
+                ScreenUpdateNoErase(self)
+                self.paint_once = 1
             pygame.time.delay(int(blockfb_time*1000))
-            self.pause_chk = 1
-            
-            
-        def WashReminderScore(self,blockfb_time):
-            self.draw_rectlist.append(self.screen.fill(BACKGROUND_COLOR))
-            font = pygame.font.Font(None, 36)
-            text = font.render("Aim directly for the green target", 1, self.score_color)
-            self.draw_rectlist.append(self.screen.blit(text, (self.score_position[0]+160,self.score_position[1])))
-            text2 = font.render("You will not see feedback of your reaches for some of the movements", 1, self.score_color)
-            self.draw_rectlist.append(self.screen.blit(text2, (self.score_position[0],self.score_position[1]+50)))
-            text4 = font.render("Total Score is "+str(int(self.total_score))+" out of "
-                               +str(int(self.total_trials))+". You collected "+
-                               str(int(100*self.total_score/self.total_trials))+
-                               "% of points available.", 1, self.score_color)
-            self.draw_rectlist.append(self.screen.blit(text4, (self.score_position[0],self.score_position[1]-100)))
-            ScreenUpdate(self)
-            pygame.time.delay(int((blockfb_time+2)*1000))
-            self.pause_chk = 1
-            
-        def WashReminderScorePause(self,blockfb_time):
-            self.draw_rectlist.append(self.screen.fill(BACKGROUND_COLOR))
-            font = pygame.font.Font(None, 36)
-            text = font.render("Aim directly for the green target", 1, self.score_color)
-            self.draw_rectlist.append(self.screen.blit(text, (self.score_position[0]+160,self.score_position[1])))
-            text2 = font.render("You will not see feedback of your reaches for some of the movements", 1, self.score_color)
-            self.draw_rectlist.append(self.screen.blit(text2, (self.score_position[0],self.score_position[1]+50)))
-            text4 = font.render("Total Score is "+str(int(self.total_score))+" out of "
-                               +str(int(self.total_trials))+". You collected "+
-                               str(int(100*self.total_score/self.total_trials))+
-                               "% of points available.", 1, self.score_color)
-            self.draw_rectlist.append(self.screen.blit(text4, (self.score_position[0],self.score_position[1]-100)))
-            ScreenUpdate(self)
-            pausescreen(self)
 
 
             
@@ -600,10 +578,6 @@ class Game:
         #--------------------------------------------------------------------------------------------------------------        
         #Print goal on first trial
         cursor.r = 1000 #Stops it jumping to feedback on first trial
-        self.pause_chk = 0
-        self.pause_clear = 0
-        self.show_score = 0
-        GoalReminderFirstTrial(self)
         
         #iteration variables
         sample_time = 0
@@ -616,7 +590,13 @@ class Game:
         trial_first_loop = True
         slowchk = 0
         SLOW = 0
-        
+        self.pause_chk = 0
+        self.pause_clear = 0
+        instruction0 = -1
+        goal0 = -1
+        self.paint_once = 0
+        self.show_score = 0
+
         #This is the main trial loop------------------------------------------------------------------------------------------------------------------
         while trialnum < self.trialset_len:
             #Update Event Codes and timing
@@ -655,9 +635,20 @@ class Game:
                 FIND_START = True
                 trial_first_loop = False
                 #Print trial number
-                #font = pygame.font.Font(None, 36)
-                #text = font.render("Trial "+str(int(trialnum+1)), 1, self.score_color)
-                #self.draw_noerase_rectlist.append(self.screen.blit(text, (24,744)))
+                font = pygame.font.Font(None, 36)
+                text = font.render("Trial "+str(int(trialnum+1)), 1, self.score_color)
+                self.draw_noerase_rectlist.append(self.screen.blit(text, (24,744)))
+            #Print goal on first trial
+            if GOAL_REMINDER:
+                remainder = (trialnum+1) % 40
+                if (self.goal != goal0 or self.instruction != instruction0) and self.pause_chk == 0:#The instruction has changed, so print it to the screen
+                    GoalReminder(self,BLOCKFB_TIME)
+                elif remainder == 0 and self.pause_chk == 0:
+                    GoalReminder(self,BLOCKFB_TIME)
+                else:
+                    GOAL_REMINDER = False
+                    FIND_START = True
+                    CURSOR_ZOOM = True
 
             #Poll mouse input and do any rotation computations
             for event in pygame.event.get():
@@ -668,10 +659,15 @@ class Game:
                         GameHistoryUpdate(history,cursor,target,start,move_data,PIXEL2MM)    #This will call the saving function to save the game
                         pygame.display.quit()   #Closes the display
                         sys.exit()                          #Calls interrupt to end game
-#                    if event.type == KEYDOWN:
-#                        if event.key == K_SPACE:
-#                            if NEXT_TRIAL: #Will only work if you are in the next_trial phase of the trial
-#                                self.pause_chk = 1
+                    if event.type == KEYDOWN:
+                        if event.key == K_SPACE:
+                            self.pause_chk = 1
+                            self.paint_once == 0
+                            goal0 = self.goal
+                            instruction0 = self.instruction
+                            self.draw_rectlist.append(self.screen.fill(BACKGROUND_COLOR))
+                            ScreenUpdate(self)
+                            FIND_START = True 
                 #Poll joystick
                 x0 = hand.x
                 y0 = hand.y
@@ -887,8 +883,8 @@ class Game:
                     self.draw_rectlist.append(pygame.draw.circle(self.screen, target.color, target.position, target.width, TARGET_FILL))
                 if self.numericfb == 1:
                     #Calulate feedback location
-                    numericfbx = (target.distance*.6)*math.cos(target.angle*math.pi/180) + start.x
-                    numericfby = -(target.distance*.6)*math.sin(target.angle*math.pi/180) + start.y
+                    numericfbx = (target.distance*.65)*math.cos(target.angle*math.pi/180) + start.x
+                    numericfby = -(target.distance*.65)*math.sin(target.angle*math.pi/180) + start.y
                     self.points_position = (int(numericfbx),int(numericfby))
                     #draw points
                     font = pygame.font.Font(None, self.points_font_size)
@@ -907,58 +903,41 @@ class Game:
                     
             if NEXT_TRIAL: #Clean up for next trial and check instructions
 
-                if self.pause == 1 and self.show_score == 0 and self.pause_chk < 1:
-                    GoalReminder(self,BLOCKFB_TIME)
-                elif self.pause ==1 and self.show_score == 1 and self.pause_chk < 1:
-                	GoalReminderScore(self,BLOCKFB_TIME)
-                elif self.pause == 2 and self.pause_chk < 1:
-                    GoalInstPause(self,BLOCKFB_TIME)
-                elif self.pause == 3 and self.pause_chk < 1:
-                    GoalInstReminder(self,BLOCKFB_TIME)
-                elif self.pause == 4 and self.pause_chk < 1:
-                    BreakScreen(self,BLOCKFB_TIME)
-                elif self.pause == 5 and self.show_score == 0 and self.pause_chk < 1:
-                    WashReminder(self,BLOCKFB_TIME)
-                elif self.pause == 5 and self.show_score == 1 and self.pause_chk < 1:
-                    WashReminderScore(self,BLOCKFB_TIME)
-                elif self.pause == 6 and self.show_score == 0 and self.pause_chk < 1:
-                    WashReminderPause(self,BLOCKFB_TIME)
-                elif self.pause == 6 and self.show_score == 1 and self.pause_chk < 1:
-                    WashReminderScorePause(self,BLOCKFB_TIME)
-                else:
-                    self.pause_chk = 1
-
-                if self.pause_chk > 0:
-                    #Update all the variables
-                    FIND_START = True
-                    NEXT_TRIAL = False
-                    CURSOR_ZOOM = True
-                    TARGET_FILL = 1
-                    HIT = -1                    
-                    GameHistoryUpdate(history,cursor,target,start,move_data,PIXEL2MM)
-                    self.current_score = 0
-                    #Reinitialize everything
-                    trialnum += 1
-                    self.trial_num = trialnum
-                    num_samples = 0
-                    trial_first_loop = True
-                    #Clean times (start time doesnt get reset nor does trial_time)
-                    self.find_time = 0
-                    self.hold_time = 0
-                    self.rt = 0
-                    self.move_time = 0
-                    self.fb_time = 0
-                    SLOW = 0
-                    slowchk = 0
-                    self.pause_chk = 0
-                    self.current_points = 0
+                #Update all the variables
+                GOAL_REMINDER = True
+                FIND_START = False
+                CURSOR_ZOOM = False
+                
+                NEXT_TRIAL = False
+                
+                TARGET_FILL = 1
+                HIT = -1
+                #Update the game history right now
+                GameHistoryUpdate(history,cursor,target,start,move_data,PIXEL2MM)
+                self.current_score = 0
+                #Reinitialize everything
+                trialnum += 1
+                self.trial_num = trialnum
+                num_samples = 0
+                trial_first_loop = True
+                #Clean times (start time doesnt get reset nor does trial_time)
+                self.find_time = 0
+                self.hold_time = 0
+                self.rt = 0
+                self.move_time = 0
+                self.fb_time = 0
+                SLOW = 0
+                slowchk = 0
+                self.pause_chk = 0
+                self.paint_once = 0
+                self.current_points = 0
 
   
-                    CurrentEvent(self)
-                    #Clean up the movement data, so it doesnt bog down the game
-                    move_data = {'trial_num':[],'flag':[],'t':[],'dt':[],'trial_time':[],'rotation':[],
-                     'start_x':[],'start_y':[],'cursor_x':[],'cursor_y':[],'hand_x':[],'hand_y':[],'joystick_axis0':[],'joystick_axis1':[],'joystick_axis2':[],'joystick_axis3':[]}
-                    self.draw_rectlist.append(self.screen.fill(BACKGROUND_COLOR))
+                CurrentEvent(self)
+                #Clean up the movement data, so it doesnt bog down the game
+                move_data = {'trial_num':[],'flag':[],'t':[],'dt':[],'trial_time':[],'rotation':[],
+                    'start_x':[],'start_y':[],'cursor_x':[],'cursor_y':[],'hand_x':[],'hand_y':[],'joystick_axis0':[],'joystick_axis1':[],'joystick_axis2':[],'joystick_axis3':[]}
+                self.draw_rectlist.append(self.screen.fill(BACKGROUND_COLOR))
             
             #Save movement data
             move_data['trial_num'].append(self.trial_num+1)
